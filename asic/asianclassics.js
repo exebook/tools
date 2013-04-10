@@ -1,9 +1,10 @@
 require('logininfo.js')
+var max_files_to_download = 3
 var qs = require('querystring'), session = ''
 var http = require('http')
 var fs = require('fs')
 fs.mkdir('data')
-var volume = [], queue = [], sections = [], titles = [], titles2 = []
+var volume = [], queue = [], sections = [], titles = []
 
 function next() {
 	if (queue.length > 0) {
@@ -159,24 +160,51 @@ function get_all_titles() {
 
 function parse_titles() {
 	for (var i = 0; i < sections.length; i++) {
-//		console.log('SECTION: ' + i)
 		var A = fs.readFileSync('data/titles_' + i + '.html').toString().replace(/\r/g, '\n').split('\n')
 		for (var a = 0; a < A.length; a++) {
-			var s = A[a]
-			if (s.indexOf('>etext<') > 0) {
-				s = s.split('href="')[1].split('"')[0]
-				titles.push(s)
-			}
 			var t = A[a]
 			if (t.indexOf('"hlasano"') > 0) {
 				t = t.split('<span class="hlasano">')[1].split('</span>')[0]
-				titles2.push(t)
+				t = t.replace(/H/g, '').replace(/ /g, '')
+				titles.push(t)
 			}
 		}
 	}
 	fs.writeFileSync('data/titles.js', JSON.stringify(titles))
-	console.log('TOTAL TITLES: ' + titles.length)
-	console.log('TOTAL TITLES2: ' + titles2.length)
+	console.log('TOTAL TITLES: ' + Object.keys(titles).length)
+//	console.log(JSON.stringify(titles))
+	next()
+}
+
+function download_once(opt) {
+	if (check_file('page_' + opt.id)) return
+	var options = { host: 'www.asianclassics.org', port: 80, path: '/reader.php?collection=kangyur&index=' + opt.id, method: 'GET',
+	headers:{
+	'Cookie': 'PHPSESSID='+session
+	}};
+	var req = http.request(options, function(res) {
+		res.setEncoding('utf8');
+		var body = ''
+		res.on('data', function (chunk) { body += chunk });
+		res.on('end', function () { check_body(body, 'page_' + opt.id) } );
+	});
+	req.end();
+}
+
+
+function download() {
+	var not_downloaded = []
+	for (var i = titles.length - 1; i >= 0; i--) {
+		var data = '', file = 'data/page_' + titles[i]
+		if (fs.existsSync(file)) data = fs.readFileSync(file).toString()
+			if (data.length == 0)// && data.indexOf('<xml')) 
+				not_downloaded.push(titles[i])
+	}
+	console.log('Not yet downloaded titles: ' + not_downloaded.length)
+	console.log('Trying to download ' + max_files_to_download + ' files this time')
+	while (max_files_to_download-- > 0) {
+		queue.unshift({f:download_once, id: not_downloaded.shift()})
+	}
 	next()
 }
 
@@ -184,12 +212,13 @@ function report_ok() {
 	console.log('* Successfully completed.')
 }
 
-queue = [login, get_volume, parse_volume, get_sections, parse_sections, get_all_titles, parse_titles, report_ok]
+queue = [login, get_volume, parse_volume, get_sections, parse_sections, get_all_titles, parse_titles, download, report_ok]
 
 next()
 
 
 /*
+// this can download pure XML from another location
 data='filename=etext%2Fkangyur%2Fbka%26%2339%3B-%26%2339%3Bgyur_H0108%28mdo-sde.nga005%29.xml'
 
 var options = { host: 'www.asianclassics.org', port: 80, path: '/downloader.php', method: 'POST', 
