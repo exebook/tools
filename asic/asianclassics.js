@@ -1,9 +1,9 @@
-var login = 'email@yourmail', password = 'yourpass'
+require('logininfo.js')
 var qs = require('querystring'), session = ''
 var http = require('http')
 var fs = require('fs')
 fs.mkdir('data')
-var volume = [], queue = [], sections = [], titles = []
+var volume = [], queue = [], sections = [], titles = [], titles2 = []
 
 function next() {
 	if (queue.length > 0) {
@@ -38,7 +38,7 @@ function login() {
 			return 
 		}
 	}
-	var data = 'login-username='+login+'&login-password='+password+'&url=http://www.asianclassics.org/etext.php'
+	var data = 'login-username='+login1+'&login-password='+password+'&url=http://www.asianclassics.org/etext.php'
 	var options = { host: 'www.asianclassics.org', port: 80, path: '/execute_login.php', method: 'POST', 
 		headers: {
 			"Content-type":"application/x-www-form-urlencoded",
@@ -167,10 +167,16 @@ function parse_titles() {
 				s = s.split('href="')[1].split('"')[0]
 				titles.push(s)
 			}
+			var t = A[a]
+			if (t.indexOf('"hlasano"') > 0) {
+				t = t.split('<span class="hlasano">')[1].split('</span>')[0]
+				titles2.push(t)
+			}
 		}
 	}
 	fs.writeFileSync('data/titles.js', JSON.stringify(titles))
 	console.log('TOTAL TITLES: ' + titles.length)
+	console.log('TOTAL TITLES2: ' + titles2.length)
 	next()
 }
 

@@ -1,0 +1,4 @@
+//global vars to login, copy this file to logininfo.js and assign your data
+login1 = 'email@yourmail'
+password = 'yourpass'
+
