@@ -1,9 +1,9 @@
 require('logininfo.js')
-var max_files_to_download = 3
+var max_files_to_download = 0
 var qs = require('querystring'), session = ''
 var http = require('http')
 var fs = require('fs')
-fs.mkdir('data')
+if (!fs.existsSync('data')) fs.mkdir('data')
 var volume = [], queue = [], sections = [], titles = []
 
 function next() {
