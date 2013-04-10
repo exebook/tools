@@ -175,7 +175,7 @@ function parse_titles() {
 //	console.log(JSON.stringify(titles))
 	next()
 }
-
+var blink = 0
 function download_once(opt) {
 	if (check_file('page_' + opt.id)) return
 	var options = { host: 'www.asianclassics.org', port: 80, path: '/reader.php?collection=kangyur&index=' + opt.id, method: 'GET',
@@ -185,24 +185,37 @@ function download_once(opt) {
 	var req = http.request(options, function(res) {
 		res.setEncoding('utf8');
 		var body = ''
-		res.on('data', function (chunk) { body += chunk });
+		res.on('data', function (chunk) { body += chunk; 
+			process.stdout.write(blink + '\u0008')
+			blink++; if (blink == 10) blink = 0
+		});
 		res.on('end', function () { check_body(body, 'page_' + opt.id) } );
 	});
 	req.end();
 }
 
+function delay(opt) {
+	console.log('waiting: ' + opt.time + ' ms')
+	setTimeout(function() {
+		console.log('continuing')
+		next()
+	}, opt.time)
+}
 
 function download() {
 	var not_downloaded = []
-	for (var i = titles.length - 1; i >= 0; i--) {
-		var data = '', file = 'data/page_' + titles[i]
+	for (var i = 0; i < titles.length; i++) {
+		var data = '', file = 'data/page_' + titles[i] + '.html'
 		if (fs.existsSync(file)) data = fs.readFileSync(file).toString()
-			if (data.length == 0)// && data.indexOf('<xml')) 
+			if (data.length == 0 || data.indexOf('</text>') < 0) 
 				not_downloaded.push(titles[i])
 	}
 	console.log('Not yet downloaded titles: ' + not_downloaded.length)
 	console.log('Trying to download ' + max_files_to_download + ' files this time')
-	while (max_files_to_download-- > 0) {
+	if (not_downloaded.length > max_files_to_download) not_downloaded.length = max_files_to_download
+	while (not_downloaded.length > 0) {
+//		console.log(not_downloaded.shift())
+		queue.unshift({f:delay, time: 3000})
 		queue.unshift({f:download_once, id: not_downloaded.shift()})
 	}
 	next()
