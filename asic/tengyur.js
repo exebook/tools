@@ -1,12 +1,12 @@
 require('logininfo.js')
-var max_files_to_download = 50
+var max_files_to_download = 5000
 var qs = require('querystring'), session = ''
 var http = require('http')
 var fs = require('fs')
 if (!fs.existsSync('data2')) fs.mkdir('data2')
 var volume = [], queue = [], sections = [], titles = []
 var delay_between = 3000
-var multi_tasks = 5
+var multi_tasks = 10
 if (multi_tasks > 1) delay_between = 0
 
 function next() {
@@ -178,7 +178,7 @@ function parse_titles() {
 //	console.log(JSON.stringify(titles))
 	next()
 }
-var blink = 0
+
 function download_once(opt) {
 	if (check_file('page_' + opt.id)) return
 	var options = { host: 'www.asianclassics.org', port: 80, path: '/reader.php?collection=tengyur&index=' + opt.id, method: 'GET',
@@ -189,10 +189,16 @@ function download_once(opt) {
 		res.setEncoding('utf8');
 		var body = ''
 		res.on('data', function (chunk) { body += chunk; 
-			process.stdout.write(blink + '\u0008')
-			blink++; if (blink == 10) blink = 0
+			var s = '' + (body.length / (1024 * 1024)).toFixed(2) + 'M', t = s
+			while (t.length < s.length * 2) t += '\u0008'
+			process.stdout.write(t)
 		});
 		res.on('end', function () { check_body(body, 'page_' + opt.id) } );
+//		res.on('error', function () { check_body(body, 'page_' + opt.id) } );
+	});
+	req.on('error', function(e) {
+		console.log('problem with request: ' + e.message + ', retrying');
+		download_once(opt)
 	});
 	req.end();
 }
