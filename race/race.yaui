@@ -1,0 +1,31 @@
+var wh = yaui.get_app_size(), w = wh[0] * 0.01, h = wh[1] * 0.01, x = w, y = h, track = w * 90
+var team = ['ferrari', 'mclaren', 'williams'], car = ['[=88>}', '}:=|||>]', '[::[]=)'], lap = 5
+function play() {
+	select({cls:['car']}).each(function(c) {
+		c.race.accel += Math.random() * 0.01
+		c.race.pos += c.race.accel
+		if (c.race.pos > track * 5) {
+			clearInterval(clock)
+			c.text += ' %%% WINNER %%%'
+		}
+		c.set_xy(c.race.pos % track).apply()
+	})
+}
+function row(id, cls, txt) {
+	var R = yaui.create('label').set_id(id).set_cls(cls).set_text(txt).set_xy(0, y).set_wh(w*100, h*7)
+	y += h*7; return R
+}
+for (var i = 0; i < team.length; i++) {
+	row('', ['all', 'team'], team[i])
+	row('', ['all', 'car'], car[i]).race = { accel: 0, lap: 1, pos: 0}
+}
+yaui.create('button').set_id('start').set_cls('all').set_text('start')
+	.set_xy(0, h*100-h*7).set_wh(w*100, h*7)
+	.bind('button', function() {
+		clock = setInterval(play, 10)
+})
+select({cls:['team','car']}).set_wh(100, h*7).lap = 1
+select({cls:['all']}).show().apply()
+
+
+
