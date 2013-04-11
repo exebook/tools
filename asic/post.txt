@@ -1,3 +1,2 @@
 login-username=ikosagi@gmail.com&login-password=111&url=http://www.asianclassics.org/etext.php
-delme
-aksljdaks
+this is useful file
