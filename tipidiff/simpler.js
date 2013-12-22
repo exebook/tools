@@ -5,7 +5,7 @@ var lower = 'abcdefghijklmnopqrstuvwxyzṣṛḥñāīūḍḷṃṅṇṭ'
 var simple = 'abcdefghijklmnopqrstuvwxyzsrhnaiudlmnnt'
 	
 var chars = []
-for (var  i = 0; i < upper.length; i++) 
+for (var  i = 0; i < upper.length; i++)
 	chars[upper.charCodeAt(i)] = simple.charAt(i),
 	chars[lower.charCodeAt(i)] = simple.charAt(i)
 	
@@ -21,6 +21,15 @@ simpler = function(s) {
 	return t
 }
 
+makeSimplerMap = function(s) {
+	var R = []
+	for (var i = 0; i < s.length; i++) {
+		var c = s.charCodeAt(i)
+		if (chars[c] != undefined) R.push(i)
+	}
+	return R	
+}
+
 simplerSpace = function(s) {
 	var t = ['']
 	for (var i = 0; i < s.length; i++) {
@@ -33,7 +42,7 @@ simplerSpace = function(s) {
 
 glueFile = function() {
 	var glue = fs.createWriteStream('glue2')
-	J=require('Y:\\thai\\pali2.json')
+	J = require(disk + '/thai/pali2.json')
 	for (k = 0; k < J.length; k++) {
 		var s = J[k][2]
 		if  (s == undefined) {

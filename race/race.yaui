@@ -17,7 +17,7 @@ function row(id, cls, txt) {
 }
 for (var i = 0; i < team.length; i++) {
 	row('', ['all', 'team'], team[i])
-	row('', ['all', 'car'], car[i]).race = { accel: 0, lap: 1, pos: 0}
+	row('', ['all', 'car'], car[i]).race = { accel: 0, lap: 1, pos: 0 }
 }
 yaui.create('button').set_id('start').set_cls('all').set_text('start')
 	.set_xy(0, h*100-h*7).set_wh(w*100, h*7)
